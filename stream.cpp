@@ -6,6 +6,8 @@ using namespace std;
 
 
 // -----------------------------------------------------
+// Applies a funnction to a list or iterable
+
 
 template<typename T, typename T2>
 void operator | ( const T a, T2 f ) {
