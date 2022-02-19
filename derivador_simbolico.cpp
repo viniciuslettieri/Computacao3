@@ -24,8 +24,18 @@ using namespace std;
     * log(A)' -> Prod( Div( Const(1), A ), A' )
     * sin(A)' -> cos( A ) * A'
     * cos(A)' -> -sin( A ) * A'
+     
+    We also have methods for printing like strings
 
 ********************************************************************************************/
+
+
+// Truncate double if int
+string double_to_str( double x ) {
+    string str = ( (std::fmod( x, 1 ) == 0.0) ? std::to_string( (int)x ) : std::to_string( (double)x ) );
+    str.erase(str.find_last_not_of('0') + 1, std::string::npos );
+    return str;
+}
 
 // Our Variable X Class
 class X {
@@ -35,6 +45,13 @@ class X {
     }
     auto dx(auto x) {
         return 1;
+    }
+    
+    string str() const {
+        return "x";
+    }
+    string dx_str() const {
+        return "1";
     }
 };
 
@@ -49,6 +66,17 @@ class Const {
     }
     auto dx(auto x) {
         return 0;
+    }
+
+    string str() const {
+        if constexpr ( std::is_same< double, decltype(v) >::value ) {
+            return double_to_str(v);
+        } else {
+            return to_string( v );
+        }
+    }
+    string dx_str() const {
+        return "0";
     }
 
     private:
@@ -66,6 +94,13 @@ class Addition {
     }
     auto dx( auto x ) {
         return a.dx( x ) + b.dx( x );
+    }
+
+    string str() const {
+        return "((" + a.str() + ")+(" + b.str() + "))";
+    }
+    string dx_str() const {
+        return "((" + a.dx_str()+ ")+(" + b.dx_str() + "))";
     }
 
     private:
@@ -86,6 +121,13 @@ class Subtraction {
         return a.dx( x ) - b.dx( x );
     }
 
+    string str() const {
+        return "((" + a.str() + ")-(" + b.str() + "))";
+    }
+    string dx_str() const {
+        return "((" + a.dx_str()+ ")-(" + b.dx_str() + "))";
+    }
+
     private:
     F1 a; 
     F2 b;
@@ -102,6 +144,13 @@ class Product {
     }
     auto dx( auto x ) {
         return a.dx( x ) * b.e( x ) + a.e( x ) * b.dx( x );
+    }
+
+    string str() const {
+        return "((" + a.str() + ")*(" + b.str() + "))";
+    }
+    string dx_str() const {
+        return "((" + a.dx_str()+ ")*(" + b.str() + ")+(" + a.str()+ ")*(" + b.dx_str() + "))";
     }
 
     private:
@@ -122,6 +171,13 @@ class Division {
         return ( ( ( a.dx( x ) * b.e( x ) ) - ( a.e( x ) * b.dx( x ) ) ) ) / ( b.e( x ) * b.e( x ) );
     }
 
+    string str() const {
+        return "((" + a.str() + ")/(" + b.str() + "))";
+    }
+    string dx_str() const {
+        return "(((" + a.dx_str()+ ")*(" + b.str() + ")-(" + a.str()+ ")*(" + b.dx_str() + ")))/(" + b.str()+ ")^2)";
+    }
+
     private:
     F1 a; 
     F2 b;
@@ -138,6 +194,13 @@ class Pow {
     }
     auto dx( auto x ) {
         return b * pow( a.e( x ), b-1 ) * a.dx( x );
+    }
+
+    string str() const {
+        return "(" + a.str() + ")^" + to_string(b);
+    }
+    string dx_str() const {
+        return "(" + to_string(b) + "*(" + a.dx_str() + ")*(" + a.str() + ")^" + to_string(b-1) + ")";
     }
 
     private:
@@ -158,6 +221,13 @@ class Exp{
         return exp( a.e( x ) ) * a.dx( x );
     }
 
+    string str() const {
+        return "exp(" + a.str() + ")";
+    }
+    string dx_str() const {
+        return "(exp(" + a.str() + ")*(" + a.dx_str() + "))";
+    }
+
     private:
     F1 a;
 };
@@ -173,6 +243,13 @@ class Log{
     }
     auto dx( auto x ) {
         return ( 1.0 / a.e( x ) ) * a.dx( x );
+    }
+
+    string str() const {
+        return "log(" + a.str() + ")";
+    }
+    string dx_str() const {
+        return "(1/("+ a.str() + ")*" + a.dx_str() + ")";
     }
 
     private:
@@ -192,6 +269,13 @@ class Sin{
         return cos( a.e( x ) ) * a.dx( x );
     }
 
+    string str() const {
+        return "sin(" + a.str() + ")";
+    }
+    string dx_str() const {
+        return "(cos(" + a.str() + ")*" + a.dx_str() + ")";
+    }
+
     private:
     F1 a;
 };
@@ -208,6 +292,14 @@ class Cos{
     auto dx( auto x ) {
         return -sin( a.e( x ) ) * a.dx( x );
     }
+
+    string str() const {
+        return "cos(" + a.str() + ")";
+    }
+    string dx_str() const {
+        return "(-sin(" + a.str() + ")*" + a.dx_str() + ")";
+    }
+
 
     private:
     F1 a;
@@ -338,6 +430,8 @@ Sin<A> sin ( A a ) {
 X x;
 
 int main(){
+    cout << "Numeric Evaluation: " << endl;
+
     auto f1 = 3*x*x*x*2;
     cout << f1.dx(10) << endl;
 
@@ -361,6 +455,56 @@ int main(){
 
     auto f7 = exp( ( 3 * ( x->*3 ) ) / sin( x ) );
     cout << f7.dx(2) << endl;
+
+    cout << "String Evaluation: " << endl;
+
+    auto f8 = 3.0 + x + x;
+    cout << f8.str() << endl;
+    cout << f8.dx_str() << endl;
+
+    auto f9 = x * x;
+    cout << f9.str() << endl;
+    cout << f9.dx_str() << endl;
+
+    auto f10 = x - (x - 5.0);
+    cout << f10.str() << endl;
+    cout << f10.dx_str() << endl;
+
+    auto f11 = (x+7.0)*(x-7.0);
+    cout << f11.str() << endl;
+    cout << f11.dx_str() << endl;
+
+    auto f12 = x->*3;
+    cout << f12.str() << endl;
+    cout << f12.dx_str() << endl;
+
+    auto f13 = (7.0*x+5.0)->*3;
+    cout << f13.str() << endl;
+    cout << f13.dx_str() << endl;
+
+    auto f14 = sin( x + 5 );
+    cout << f14.str() << endl;
+    cout << f14.dx_str() << endl;
+
+    auto f15 = exp( x + 5 );
+    cout << f15.str() << endl;
+    cout << f15.dx_str() << endl;
+
+    auto f16 = 1.0 / (sin(x)->*2 + cos(x)->*2)->*4;
+    cout << f16.str() << endl;
+    cout << f16.dx_str() << endl;
+
+    auto f17 = log( cos( x + 5 ) );
+    cout << f17.str() << endl;
+    cout << f17.dx_str() << endl;
+
+    auto f18 = exp( x * log( x - 8.0 )  + 1.0 );
+    cout << f18.str() << endl;
+    cout << f18.dx_str() << endl;
+
+    auto f19 = log( (8.1/(x+1.0)->*3 - 9.2 ) * (x + 3.0) *sin( cos( x / 3.14 ) ) + x );
+    cout << f19.str() << endl;
+    cout << f19.dx_str() << endl;
 
     return 0;
 }
