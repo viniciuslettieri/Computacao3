@@ -23,18 +23,18 @@ void func4( int a, string b, int c, double d ) {
 }
 
 int main() {
-  auto f3 = bind( func4, 5 );
+    auto f3 = bind( func4, 5 );
 
-  f3( "b", 7, 2.1 );
- 
-  auto f2 = bind( f3, "b" );
-  auto f2_a = f3( "b" );
-  auto f2_b = f3( "b" );
-  auto f1 = f3( "b", 8 );
-  f3(1.0);
+    f3( "b", 7, 2.1 );
+    
+    auto f2 = bind( f3, "b" );
+    auto f2_a = f3( "b" );
+    auto f2_b = f3( "b" );
+    auto f1 = f3( "b", 8 );
+    f3(1.0);
 
-  cout << f1( 1.1 ) << endl; 
-  cout << f2( 2, 1.1 ) << endl; 
-  cout << f2_a( 2, 1.1 ) << endl; 
-  cout << f2_b( 2, 1.1 ) << endl; 
+//   cout << f1( 1.1 ) << endl; 
+//   cout << f2( 2, 1.1 ) << endl; 
+//   cout << f2_a( 2, 1.1 ) << endl; 
+//   cout << f2_b( 2, 1.1 ) << endl; 
 }
